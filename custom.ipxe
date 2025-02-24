@@ -8,6 +8,9 @@ cpuid --ext 29 && set arch x86_64 || set arch i386
 isset ${ip} || dhcp
 isset ${cls} && clear ||
 
+# Set Windows architecture
+set win_arch x64
+
 :main_menu
 clear menu
 set space:hex 20:20
@@ -15,7 +18,7 @@ set space ${space:string}
 
 menu netboot.xyz
 item --gap Windows:
-item windows ${space} Windows 11
+item windows ${space} Windows 11 Install
 
 item --gap Tools:
 item shell ${space} iPXE Shell
@@ -47,13 +50,25 @@ chain utils.ipxe || goto error
 goto main_menu
 
 :windows
-chain windows.ipxe || goto error
-goto main_menu
+isset ${win_base_url} && goto win_install || goto url_set
+
+:url_set
+echo Set the HTTP URL of an extracted Windows ISO without the trailing slash:
+echo e.g. http://www.mydomain.com/windows
+echo
+echo -n URL: ${} && read win_base_url
+echo
+echo netboot.xyz will attempt to load the following files:
+echo ${win_base_url}/${win_arch}/bootmgr
+echo ${win_base_url}/${win_arch}/bootmgr.efi
+echo ${win_base_url}/${win_arch}/boot/bcd
+echo ${win_base_url}/${win_arch}/boot/boot.sdi
+echo ${win_base_url}/${win_arch}/sources/boot.wim
+echo
+prompt Press any key to continue...
+goto windows
 
 :win_install
-isset ${win_base_url} && goto boot || echo URL not set... && goto url_set
-
-:boot
 imgfree
 kernel http://${boot_domain}/wimboot
 initrd -n bootmgr     ${win_base_url}/${win_arch}/bootmgr       bootmgr ||
@@ -64,9 +79,6 @@ initrd -n boot.sdi    ${win_base_url}/${win_arch}/boot/boot.sdi boot.sdi ||
 initrd -n boot.sdi    ${win_base_url}/${win_arch}/Boot/boot.sdi boot.sdi ||
 initrd -n boot.wim    ${win_base_url}/${win_arch}/sources/boot.wim boot.wim
 boot
-
-:windows_exit
-exit 0
 
 :error
 echo Error occurred, press any key to return to menu ...
