@@ -14,9 +14,6 @@ set space:hex 20:20
 set space ${space:string}
 
 menu netboot.xyz
-item --gap Boot:
-item local ${space} Boot from local HDD
-
 item --gap Windows:
 item windows ${space} Windows 11
 
@@ -24,6 +21,9 @@ item --gap Tools:
 item shell ${space} iPXE Shell
 item netinfo ${space} Network card info
 iseq ${platform} efi && item utils ${space} Utilities (UEFI) ||
+
+item --gap Boot:
+item local ${space} Boot from local HDD
 
 choose menu || goto local
 echo ${cls}
@@ -49,6 +49,24 @@ goto main_menu
 :windows
 chain windows.ipxe || goto error
 goto main_menu
+
+:win_install
+isset ${win_base_url} && goto boot || echo URL not set... && goto url_set
+
+:boot
+imgfree
+kernel http://${boot_domain}/wimboot
+initrd -n bootmgr     ${win_base_url}/${win_arch}/bootmgr       bootmgr ||
+initrd -n bootmgr.efi ${win_base_url}/${win_arch}/bootmgr.efi   bootmgr.efi ||      
+initrd -n bcd         ${win_base_url}/${win_arch}/boot/bcd      bcd ||
+initrd -n bcd         ${win_base_url}/${win_arch}/Boot/BCD      bcd ||
+initrd -n boot.sdi    ${win_base_url}/${win_arch}/boot/boot.sdi boot.sdi ||
+initrd -n boot.sdi    ${win_base_url}/${win_arch}/Boot/boot.sdi boot.sdi ||
+initrd -n boot.wim    ${win_base_url}/${win_arch}/sources/boot.wim boot.wim
+boot
+
+:windows_exit
+exit 0
 
 :error
 echo Error occurred, press any key to return to menu ...
