@@ -48,41 +48,39 @@ echo MAC: ${mac}
 prompt Press any key to return to menu...
 goto main_menu
 :utils
-# Embedded utilities menu instead of chaining to an external file
+# Embedded utilities menu with just the needed options
 :utils_menu
 menu Utilities
 item --gap Utilities:
 item memtest86plus ${space} Memtest86+ 7.20
-item gparted ${space} GParted
-item clonezilla ${space} Clonezilla
+item gparted ${space} GParted Live
 item systemrescue ${space} System Rescue CD
-item uefishell ${space} UEFI Shell
 item back ${space} Back to main menu
 choose --default back utils_item || goto main_menu
 echo ${cls}
 goto ${utils_item}
 
 :memtest86plus
-echo Booting Memtest86+ 7.20...
+imgfree
 kernel ${live_endpoint}/asset-mirror/releases/download/7.20-014832f7/memtest64.efi || kernel https://boot.netboot.xyz/asset-mirror/releases/download/7.20-014832f7/memtest64.efi
 boot
 goto utils_menu
 
 :gparted
-echo Booting GParted...
-goto utils_menu
-
-:clonezilla
-echo Booting Clonezilla...
+imgfree
+set squash_url ${live_endpoint}/debian-squash/releases/download/1.6.0-10-cff72999/filesystem.squashfs || set squash_url https://boot.netboot.xyz/debian-squash/releases/download/1.6.0-10-cff72999/filesystem.squashfs
+set kernel_url ${live_endpoint}/debian-squash/releases/download/1.6.0-10-cff72999/ || set kernel_url https://boot.netboot.xyz/debian-squash/releases/download/1.6.0-10-cff72999/
+kernel ${kernel_url}vmlinuz boot=live fetch=${squash_url} union=overlay username=user vga=788 initrd=initrd.magic ${cmdline}
+initrd ${kernel_url}initrd
+boot
 goto utils_menu
 
 :systemrescue
-echo Booting System Rescue CD...
-goto utils_menu
-
-:uefishell
-echo Booting UEFI Shell...
-kernel ${live_endpoint}/asset-mirror/releases/download/edk2-stable202002-046915a7/uefi-shell-x64.efi || kernel https://boot.netboot.xyz/asset-mirror/releases/download/edk2-stable202002-046915a7/uefi-shell-x64.efi
+imgfree
+set url ${live_endpoint}/asset-mirror/releases/download/11.03-e17908dd/ || set url https://boot.netboot.xyz/asset-mirror/releases/download/11.03-e17908dd/
+set ipparam BOOTIF=${netX/mac} ip=dhcp net.ifnames=0
+kernel ${url}vmlinuz archisobasedir=sysresccd ${ipparam} archiso_http_srv=${url} initrd=initrd.magic ${cmdline}
+initrd ${url}initrd
 boot
 goto utils_menu
 
