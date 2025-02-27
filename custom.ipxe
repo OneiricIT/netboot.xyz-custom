@@ -27,17 +27,30 @@ choose --default local --timeout 60000 menu || goto local
 echo ${cls}
 goto ${menu}
 :local
+# Fix for local boot
 echo Booting from local disks ...
+# Add sanboot command to actually boot from local disk
+sanboot --no-describe --drive 0x80 || 
+# If sanboot fails, try exit to chain to next boot option
 exit 1
 :shell
 echo Type "exit" to return to menu.
 shell
 goto main_menu
 :netinfo
-ifstat
+# Fix for network info - simplified but functional approach
+echo Network Information:
+echo IP: ${ip}
+echo Netmask: ${netmask}
+echo Gateway: ${gateway}
+echo DNS: ${dns}
+echo MAC: ${mac}
+prompt Press any key to return to menu...
 goto main_menu
 :utils
-chain utils.ipxe || goto error
+# Chain to the existing utils-efi.ipxe file from netboot.xyz
+chain utils-efi.ipxe || echo Could not find utils-efi.ipxe file
+prompt Press any key to return to main menu...
 goto main_menu
 :windows
 isset ${win_base_url} && goto win_install || goto url_set
