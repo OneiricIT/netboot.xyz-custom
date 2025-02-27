@@ -23,7 +23,7 @@ item shell ${space} iPXE Shell
 item netinfo ${space} Network card info
 iseq ${platform} efi && item utils ${space} Utilities (UEFI) ||
 # Set default option to local boot with 60 second timeout
-choose --default local --timeout 60000 menu || goto local
+choose --default local --timeout 15000 menu || goto local
 echo ${cls}
 goto ${menu}
 :local
