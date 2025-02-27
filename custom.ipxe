@@ -49,7 +49,10 @@ prompt Press any key to return to menu...
 goto main_menu
 :utils
 # Chain to the existing utils-efi.ipxe file from netboot.xyz
-chain utils-efi.ipxe || echo Could not find utils-efi.ipxe file
+# Using the full URL to ensure the file is found
+chain https://boot.netboot.xyz/utils-efi.ipxe || 
+chain ${boot_domain}/utils-efi.ipxe ||
+echo Could not find utils-efi.ipxe file
 prompt Press any key to return to main menu...
 goto main_menu
 :windows
