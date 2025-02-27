@@ -3,55 +3,44 @@
 isset ${arch} && goto skip_arch_detect ||
 cpuid --ext 29 && set arch x86_64 || set arch i386
 :skip_arch_detect
-
 # Basic system setup
 isset ${ip} || dhcp
 isset ${cls} && clear ||
-
 # Set Windows architecture
 set win_arch x64
-
 :main_menu
 clear menu
 set space:hex 20:20
 set space ${space:string}
-
 menu netboot.xyz
+# Boot menu moved to the top and set as default
+item --gap Boot:
+item local ${space} Boot from local HDD
 item --gap Windows:
 item windows ${space} Windows 11 Install
-
 item --gap Tools:
 item shell ${space} iPXE Shell
 item netinfo ${space} Network card info
 iseq ${platform} efi && item utils ${space} Utilities (UEFI) ||
-
-item --gap Boot:
-item local ${space} Boot from local HDD
-
-choose menu || goto local
+# Set default option to local boot with 60 second timeout
+choose --default local --timeout 60000 menu || goto local
 echo ${cls}
 goto ${menu}
-
 :local
 echo Booting from local disks ...
 exit 1
-
 :shell
 echo Type "exit" to return to menu.
 shell
 goto main_menu
-
 :netinfo
 ifstat
 goto main_menu
-
 :utils
 chain utils.ipxe || goto error
 goto main_menu
-
 :windows
 isset ${win_base_url} && goto win_install || goto url_set
-
 :url_set
 echo Set the HTTP URL of an extracted Windows ISO without the trailing slash:
 echo e.g. http://www.mydomain.com/windows
@@ -67,7 +56,6 @@ echo ${win_base_url}/${win_arch}/sources/boot.wim
 echo
 prompt Press any key to continue...
 goto windows
-
 :win_install
 imgfree
 kernel http://${boot_domain}/wimboot
@@ -79,7 +67,6 @@ initrd -n boot.sdi    ${win_base_url}/${win_arch}/boot/boot.sdi boot.sdi ||
 initrd -n boot.sdi    ${win_base_url}/${win_arch}/Boot/boot.sdi boot.sdi ||
 initrd -n boot.wim    ${win_base_url}/${win_arch}/sources/boot.wim boot.wim
 boot
-
 :error
 echo Error occurred, press any key to return to menu ...
 prompt
