@@ -48,12 +48,45 @@ echo MAC: ${mac}
 prompt Press any key to return to menu...
 goto main_menu
 :utils
-# Chain to the existing utils-efi.ipxe file from netboot.xyz
-# Using the full URL to ensure the file is found
-chain https://boot.netboot.xyz/utils-efi.ipxe || 
-chain ${boot_domain}/utils-efi.ipxe ||
-echo Could not find utils-efi.ipxe file
-prompt Press any key to return to main menu...
+# Embedded utilities menu instead of chaining to an external file
+:utils_menu
+menu Utilities
+item --gap Utilities:
+item memtest86plus ${space} Memtest86+ 7.20
+item gparted ${space} GParted
+item clonezilla ${space} Clonezilla
+item systemrescue ${space} System Rescue CD
+item uefishell ${space} UEFI Shell
+item back ${space} Back to main menu
+choose --default back utils_item || goto main_menu
+echo ${cls}
+goto ${utils_item}
+
+:memtest86plus
+echo Booting Memtest86+ 7.20...
+kernel ${live_endpoint}/asset-mirror/releases/download/7.20-014832f7/memtest64.efi || kernel https://boot.netboot.xyz/asset-mirror/releases/download/7.20-014832f7/memtest64.efi
+boot
+goto utils_menu
+
+:gparted
+echo Booting GParted...
+goto utils_menu
+
+:clonezilla
+echo Booting Clonezilla...
+goto utils_menu
+
+:systemrescue
+echo Booting System Rescue CD...
+goto utils_menu
+
+:uefishell
+echo Booting UEFI Shell...
+kernel ${live_endpoint}/asset-mirror/releases/download/edk2-stable202002-046915a7/uefi-shell-x64.efi || kernel https://boot.netboot.xyz/asset-mirror/releases/download/edk2-stable202002-046915a7/uefi-shell-x64.efi
+boot
+goto utils_menu
+
+:back
 goto main_menu
 :windows
 isset ${win_base_url} && goto win_install || goto url_set
